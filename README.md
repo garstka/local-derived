@@ -39,7 +39,7 @@ For usage example, see `src/example.cpp`.
 The project uses Catch framework for unit testing.
 You can build the sample code, as well as tests using CMake.
 
-    cd build
+    mkdir build && cd build
     cmake ..
     make && make install && make test
 
