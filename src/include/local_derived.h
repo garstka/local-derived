@@ -76,24 +76,28 @@ public:
 
 	// Constructs by copying a derived class instance.
 	template <class U,
-	          class = std::enable_if_t<std::is_base_of<Base, U>::value &&
-	                                   sizeof(U) <= size &&
-	                                   alignof(U) <= alignment>>
+	          class = std::enable_if_t<std::is_base_of<Base, U>::value>>
 	local_derived(const U& val) noexcept(
 	    std::is_nothrow_copy_constructible<U>::value)
 	{
+		static_assert(sizeof(U) <= size, "size of U must not be larger");
+		static_assert(alignof(U) <= alignment,
+		              "aligment requirement of U must not be stricter");
+
 		initialize_construction_from_value<U>();
 		new (&data) U(val);
 	}
 
 	// Constructs by moving a derived class instance.
 	template <class U,
-	          class = std::enable_if_t<std::is_base_of<Base, U>::value &&
-	                                   sizeof(U) <= size &&
-	                                   alignof(U) <= alignment>>
+	          class = std::enable_if_t<std::is_base_of<Base, U>::value>>
 	local_derived(U&& val) noexcept(
 	    std::is_nothrow_move_constructible<U>::value)
 	{
+		static_assert(sizeof(U) <= size, "size of U must not be larger");
+		static_assert(alignof(U) <= alignment,
+		              "aligment requirement of U must not be stricter");
+
 		initialize_construction_from_value<U>();
 		new (&data) U(std::move(val));
 	}
@@ -106,11 +110,13 @@ public:
 	*/
 	template <class U,
 	          class... Args,
-	          class = std::enable_if_t<std::is_base_of<Base, U>::value &&
-	                                   sizeof(U) <= size &&
-	                                   alignof(U) <= alignment>>
+	          class = std::enable_if_t<std::is_base_of<Base, U>::value>>
 	local_derived(emplace_tag_t<U>, Args&&... args)
 	{
+		static_assert(sizeof(U) <= size, "size of U must not be larger");
+		static_assert(alignof(U) <= alignment,
+		              "aligment requirement of U must not be stricter");
+
 		initialize_construction_from_value<U>();
 		new (&data) U(std::forward<Args>(args)...);
 	}
@@ -127,7 +133,7 @@ public:
 	    Constructs by moving other, different types.
 
 	    Requirements:
-	     - U* must be convertible to Base*
+	     - U must be derived from Base
 	     - other's storage must be smaller or equal in size
 	     - other's alignment must not be stricter
 	*/
@@ -135,13 +141,15 @@ public:
 	          size_t other_size,
 	          size_t other_alignment,
 	          class OtherOffset,
-	          class = std::enable_if_t<std::is_base_of<Base, U>::value &&
-	                                   other_size <= size &&
-	                                   other_alignment <= alignment>>
+	          class = std::enable_if_t<std::is_base_of<Base, U>::value>>
 	local_derived(
 	    local_derived<U, other_size, other_alignment, OtherOffset>&& other)
 	  : wrapped_move(other.wrapped_move)
 	{
+		static_assert(other_size <= size, "other's storage must not be larger");
+		static_assert(other_alignment <= alignment,
+		              "other's alignment requirement must not be stricter");
+
 		// get offset to the Base subobject
 		offset = static_cast<Offset>(
 		    local_derived_internal::add_offsets<Base, U>(other.offset));
@@ -163,12 +171,14 @@ public:
 
 	// Assigns a derived class instance, by copy.
 	template <class U,
-	          class = std::enable_if_t<std::is_base_of<Base, U>::value &&
-	                                   sizeof(U) <= size &&
-	                                   alignof(U) <= alignment>>
+	          class = std::enable_if_t<std::is_base_of<Base, U>::value>>
 	local_derived& operator=(const U& val) noexcept(
 	    std::is_nothrow_copy_constructible<U>::value)
 	{
+		static_assert(sizeof(U) <= size, "size of U must not be larger");
+		static_assert(alignof(U) <= alignment,
+		              "aligment requirement of U must not be stricter");
+
 		get()->~Base(); // call the stored object's destructor
 
 		return (*this = local_derived(val));
@@ -176,12 +186,14 @@ public:
 
 	// Assigns a derived class instance, by move.
 	template <class U,
-	          class = std::enable_if_t<std::is_base_of<Base, U>::value &&
-	                                   sizeof(U) <= size &&
-	                                   alignof(U) <= alignment>>
+	          class = std::enable_if_t<std::is_base_of<Base, U>::value>>
 	local_derived& operator=(U&& val) noexcept(
 	    std::is_nothrow_move_constructible<U>::value)
 	{
+		static_assert(sizeof(U) <= size, "size of U must not be larger");
+		static_assert(alignof(U) <= alignment,
+		              "aligment requirement of U must not be stricter");
+
 		return (*this = local_derived(std::move(val)));
 	}
 
@@ -203,7 +215,7 @@ public:
 	    Move assignment, another type.
 
 	    Requirements:
-	     - U* must be convertible to Base*
+	     - U must be derived from to Base
 	     - other's storage space must be smaller or equal in size
 	     - other's alignment must not be stricter
 	*/
@@ -211,12 +223,13 @@ public:
 	          size_t other_size,
 	          size_t other_alignment,
 	          class OtherOffset,
-	          class = std::enable_if_t<std::is_base_of<Base, U>::value &&
-	                                   other_size <= size &&
-	                                   other_alignment <= alignment>>
+	          class = std::enable_if_t<std::is_base_of<Base, U>::value>>
 	local_derived& operator=(
 	    local_derived<U, other_size, other_alignment, OtherOffset>&& other)
 	{
+		static_assert(other_size <= size, "other's storage must not be larger");
+		static_assert(other_alignment <= alignment,
+		              "other's alignment requirement must not be stricter");
 
 		// get offset to the Base subobject
 		offset = static_cast<Offset>(
