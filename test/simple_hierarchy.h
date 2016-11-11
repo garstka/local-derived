@@ -63,9 +63,18 @@ struct name_tag<>
 	std::string str;
 };
 
+// Padding for testing base class subobject offsets.
+class Padding
+{
+public:
+	virtual ~Padding(){}
+private:
+	uint8_t a;
+};
+
 // A derived class. Can inherit from base, or other derived<>
 template <class BaseClass, class NameTag, class TagType>
-class derived : public BaseClass
+class derived : public Padding, public BaseClass
 {
 public:
 	using tag_t = TagType;
